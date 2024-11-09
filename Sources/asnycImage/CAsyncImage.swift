@@ -25,7 +25,7 @@ public struct CAsyncImage<C: View,P: View>: View {
     }
     
     public var body: some View {
-        if #available(iOS 15.0, *) {
+        if #available(iOS 15.0, macOS 12, *) {
             ImageView
                 .task { loadImage(from: urlString) }
         } else {
@@ -49,7 +49,13 @@ public struct CAsyncImage<C: View,P: View>: View {
             switch result {
             case .success(let image):
                 guard let image else { return }
-                DispatchQueue.main.async { self.image = .init(uiImage: image) }
+                DispatchQueue.main.async {
+                    #if os(iOS)
+                    self.image = Image(uiImage: image)
+                    #elseif os(macOS)
+                    self.image = Image(nsImage: image)
+                    #endif
+                }
             default: break
             }
         }
